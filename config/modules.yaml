@@ -10,6 +10,22 @@ modules:
       test_setting: "test_value"
       test_number: 42
 
+  # Dummy producer module - publishes periodic test events
+  - name: "mod-dummy-producer"
+    path: "e:/claude/modules-backend/mod-dummy-producer/__init__.py"
+    enabled: true
+    config:
+      publish_interval: 5
+      event_type: "test.ping"
+
+  # Dummy consumer module - subscribes to test events
+  - name: "mod-dummy-consumer"
+    path: "e:/claude/modules-backend/mod-dummy-consumer/__init__.py"
+    enabled: true
+    config:
+      subscribe_events:
+        - "test.ping"
+
 # Module search paths (additional directories to search for modules)
 search_paths:
   - "../modules-backend"
