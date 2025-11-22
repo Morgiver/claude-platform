@@ -216,13 +216,44 @@ class Application:
         self._run()
 
     def _run(self) -> None:
-        """Main application loop."""
+        """Main application loop with resource monitoring."""
+        import time
+
+        last_monitor_time = time.time()
+        monitor_interval = 60  # Monitor resources every 60 seconds
+
         try:
             while self._running:
-                # Main loop - for now just wait
-                # In future, this could process tasks, monitor health, etc.
-                import time
+                current_time = time.time()
+
+                # Resource monitoring every 60 seconds
+                if current_time - last_monitor_time >= monitor_interval:
+                    try:
+                        ram_usage = self.resource_manager.get_memory_usage_percent()
+                        cpu_usage = self.resource_manager.get_cpu_usage_percent(interval=0.1)
+                        active_modules = len(self.module_loader.get_loaded_modules())
+
+                        logger.info(
+                            f"Resource Monitor: RAM {ram_usage:.1f}%, "
+                            f"CPU {cpu_usage:.1f}%, "
+                            f"Active Modules: {active_modules}"
+                        )
+
+                        # Publish resource monitoring event
+                        self.event_bus.publish("app.monitor", {
+                            "ram_percent": ram_usage,
+                            "cpu_percent": cpu_usage,
+                            "active_modules": active_modules,
+                            "timestamp": current_time
+                        })
+
+                        last_monitor_time = current_time
+                    except Exception as e:
+                        logger.error(f"Error monitoring resources: {e}", exc_info=True)
+
+                # Sleep to avoid busy-wait
                 time.sleep(1)
+
         except KeyboardInterrupt:
             logger.info("Received keyboard interrupt")
         finally:
