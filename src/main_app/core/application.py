@@ -68,26 +68,9 @@ class Application:
 
     def _setup_logging(self) -> None:
         """Setup logging using configuration."""
-        logging_config = self.config.get("logging", {})
-
-        # Extract logging parameters from config
-        file_config = logging_config.get("file", {})
-        console_config = logging_config.get("console", {})
-
-        # Convert string log level to logging constant
-        level_str = logging_config.get("level", "INFO")
-        level = getattr(logging, level_str.upper(), logging.INFO)
-
-        # Setup logging with configured parameters
-        setup_logging(
-            log_dir=Path(file_config.get("directory", "logs")),
-            log_file=file_config.get("filename", "app.log"),
-            level=level,
-            console_output=console_config.get("enabled", True),
-            file_output=file_config.get("enabled", True),
-            max_bytes=file_config.get("max_bytes", 10 * 1024 * 1024),
-            backup_count=file_config.get("backup_count", 5),
-        )
+        # Pass full config dict to setup_logging
+        # It will extract and parse the logging section
+        setup_logging(self.config)
 
     def _initialize_components(self) -> None:
         """Initialize core components with configuration."""
