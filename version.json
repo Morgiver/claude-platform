@@ -1,15 +1,26 @@
 {
-  "version": "0.10.0-alpha.2",
+  "version": "0.10.0-alpha.3",
   "workflow_version": "ALPHA",
   "project_name": "main",
   "created_at": "2025-11-22T00:00:00Z",
-  "last_updated": "2025-11-22T20:01:00Z",
-  "last_commit": "2c87aec",
-  "last_tag": "v0.10.0-alpha.2",
+  "last_updated": "2025-11-22T20:14:00Z",
+  "last_commit": "d70aa2c",
+  "last_tag": "v0.10.0-alpha.3",
   "last_pr": null,
   "last_release": null,
   "changelog_url": "CHANGELOG.md",
   "history": [
+    {
+      "version": "0.10.0-alpha.3",
+      "date": "2025-11-22T20:14:00Z",
+      "workflow": "ALPHA",
+      "type": "documentation",
+      "commit": "d70aa2c",
+      "pr": null,
+      "task": "Refinement-002",
+      "mission": "mission-011",
+      "description": "ALPHA Polish - Exit code investigation and Windows platform documentation"
+    },
     {
       "version": "0.10.0-alpha.2",
       "date": "2025-11-22T20:01:00Z",
