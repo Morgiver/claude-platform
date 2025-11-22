@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from ..config import load_all_configs
 from ..logging import setup_logging
+from ..error_handling.webhook_notifier import WebhookNotifier
 from .event_bus import EventBus
 from .module_loader import ModuleLoader
 from .resource_manager import ResourceManager
@@ -91,6 +92,25 @@ class Application:
             watch_reload=modules_config.get("hot_reload", True)
         )
 
+        # Webhook notifier with config
+        webhook_config = self.config.get("error_handling", {}).get("webhook", {})
+        webhook_url = webhook_config.get("url", "")
+        webhook_timeout = webhook_config.get("timeout_seconds", 10.0)
+        webhook_enabled = webhook_config.get("enabled", False)
+
+        # Only initialize if enabled and URL is provided (not empty string from env substitution)
+        if webhook_enabled and webhook_url and webhook_url.strip():
+            self.webhook_notifier = WebhookNotifier(
+                webhook_url=webhook_url,
+                timeout=webhook_timeout,
+                enabled=True,
+            )
+            logger.info(f"Webhook notifier initialized: {webhook_url}")
+        else:
+            # Initialize disabled notifier (for consistency)
+            self.webhook_notifier = WebhookNotifier(enabled=False)
+            logger.info("Webhook notifier disabled (no URL configured or disabled in config)")
+
     def start(self) -> None:
         """Start the application."""
         logger.info("Starting application...")
@@ -98,6 +118,11 @@ class Application:
         # Register signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
+
+        # Enable webhook notifications if configured
+        if self.webhook_notifier.webhook_url:
+            self.webhook_notifier.enable()
+            logger.info(f"Webhook notifications enabled: {self.webhook_notifier.webhook_url}")
 
         # Log system resources
         resources = self.resource_manager.get_system_resources()
@@ -136,6 +161,11 @@ class Application:
 
         logger.info("Shutting down application...")
         self._running = False
+
+        # Disable webhook notifications
+        if self.webhook_notifier:
+            self.webhook_notifier.disable()
+            logger.info("Webhook notifications disabled")
 
         # Publish shutdown event
         self.event_bus.publish("app.shutdown")

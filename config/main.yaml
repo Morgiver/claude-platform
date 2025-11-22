@@ -36,8 +36,9 @@ error_handling:
 
   # Webhook notifications
   webhook:
-    enabled: false
-    # Set WEBHOOK_URL environment variable
+    enabled: true
+    # Set WEBHOOK_URL environment variable or leave as empty string to disable
+    url: "${WEBHOOK_URL}"
     timeout_seconds: 10.0
 
 # Logging - detailed config in logging.yaml
