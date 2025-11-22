@@ -1,41 +1,39 @@
 # Changelog
 
-For complete version history: see [changelog/index.md](changelog/index.md)
+📋 **For complete version history**: see [changelog/index.md](changelog/index.md)
 
 ---
 
-## [0.11.0-alpha.1] - 2025-11-22
+## [0.12.0-alpha.1] - 2025-11-22
 
 ### Added
-- **Multi-Platform Compatibility** (Windows, Linux, macOS)
-- Platform detection module (`platform_utils.py`)
-- Platform information logging at startup (OS, architecture, Python version)
-- Platform-aware signal handler registration
-  - Windows: SIGINT, SIGTERM, SIGBREAK
-  - Linux/macOS: SIGINT, SIGTERM, SIGHUP, SIGQUIT
-- Platform-optimized resource limits
-  - Windows: Max 32 processes, 128 threads (conservative)
-  - Linux: Max 128 processes, 512 threads (aggressive)
-  - macOS: Max 64 processes, 256 threads (moderate)
-- Platform information in `--version` output
+- **BaseModule Abstract Class** - Standardized module development framework
+  - Abstract methods: `on_initialize()`, `on_shutdown()`
+  - Built-in properties: `event_bus`, `config`, `logger`, `name`, `is_stopping`
+  - Helper methods: `start_background_thread()`, `wait_interruptible()`
+  - Automatic thread lifecycle management
+  - Full type hints and comprehensive docstrings
 
 ### Changed
-- Exit code validation is now platform-aware
-  - Windows: Accepts exit codes 0 and 1 (TerminateProcess API)
-  - Linux/macOS: Accepts exit codes 0, -15, 143 (SIGTERM)
-- Demo script displays platform in success messages
-- Resource manager logs platform-specific reasoning
+- **mod-dummy-producer** - Refactored to use BaseModule (~30% less code)
+- **mod-dummy-consumer** - Refactored to use BaseModule (cleaner OOP design)
+- **CLAUDE.md** - Added comprehensive BaseModule usage guide with examples
 
-### Fixed
-- Windows exit code 1 no longer treated as error (platform behavior)
-- Signal coverage expanded for better graceful shutdown
-- Resource limits optimized per platform capabilities
+### Developer Experience
+- Reduced boilerplate code by 30-40%
+- Improved type safety with IDE autocomplete
+- Standardized module structure
+- Better testability with OOP design
 
-**Platform Support**: Windows ✅ | Linux ✅ | macOS ✅
+### Technical Details
+- File: `src/main_app/core/base_module.py` (266 lines)
+- 100% backward compatible with existing module loading system
+- Optional adoption (functional pattern still supported)
 
-**Workflow**: ALPHA Feature
-**Mission**: mission-012.md (Refinement-003)
-**GitHub Issue**: #12
+**Workflow**: ALPHA
+**Type**: Feature (MINOR bump)
+**Commit**: 3914e6c
+**Issue**: #13
 
 ---
 

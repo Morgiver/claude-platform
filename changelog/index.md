@@ -6,7 +6,7 @@ This file contains the complete version history across all workflow phases.
 
 ## Current Phase: ALPHA
 
-**Current Version**: 0.11.0-alpha.1 (Multi-Platform Support) 🎉
+**Current Version**: 0.12.0-alpha.1 (BaseModule Framework) 🎉
 **Current Workflow**: ALPHA
 **Last Updated**: 2025-11-22
 
@@ -28,6 +28,7 @@ _No BETA versions yet._
 
 | Version | Date | Type | Feature | Details |
 |---------|------|------|---------|---------|
+| **[0.12.0-alpha.1](alpha/v0.12.0-alpha.1.md)** | 2025-11-22 | Feature | BaseModule Abstract Class | Standardized module development framework with reduced boilerplate (30-40% less code). Abstract methods, built-in helpers, automatic lifecycle. Migrated dummy modules. |
 | [0.11.0-alpha.1](alpha/v0.11.0-alpha.1.md) | 2025-11-22 | Feature (MINOR) 🌍 | Multi-Platform Compatibility | [Full changelog](alpha/v0.11.0-alpha.1.md) |
 | [0.10.0-alpha.3](alpha/v0.10.0-alpha.3.md) | 2025-11-22 | Documentation | Exit Code Investigation | [Full changelog](alpha/v0.10.0-alpha.3.md) |
 | [0.10.0-alpha.2](alpha/v0.10.0-alpha.2.md) | 2025-11-22 | Refinement (PATCH) | Consumer Loading Fix | [Full changelog](alpha/v0.10.0-alpha.2.md) |
