@@ -4,8 +4,12 @@ import logging
 import signal
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
+from dotenv import load_dotenv
+
+from ..config import load_all_configs
+from ..logging import setup_logging
 from .event_bus import EventBus
 from .module_loader import ModuleLoader
 from .resource_manager import ResourceManager
@@ -32,13 +36,77 @@ class Application:
         Args:
             config_dir: Path to configuration directory. Defaults to ./config
         """
-        self.config_dir = config_dir or Path("config")
-        self.event_bus = EventBus()
-        self.module_loader = ModuleLoader(watch_reload=True)
-        self.resource_manager = ResourceManager()
-        self._running = False
+        # Load environment variables from .env file
+        load_dotenv()
 
-        logger.info("Application initialized")
+        # Load configuration
+        # Default to config/ directory relative to project root (2 levels up from this file)
+        if config_dir is None:
+            project_root = Path(__file__).parent.parent.parent.parent
+            self.config_dir = project_root / "config"
+        else:
+            self.config_dir = config_dir
+        try:
+            self.config = load_all_configs(self.config_dir)
+        except Exception as e:
+            # Setup basic logging to report error
+            logging.basicConfig(level=logging.ERROR)
+            logger.error(f"Failed to load configuration: {e}")
+            raise
+
+        # Setup logging with configuration
+        self._setup_logging()
+
+        # Now we can log properly
+        logger.info(f"Configuration loaded from {self.config_dir}")
+
+        # Initialize core components with configuration
+        self._initialize_components()
+
+        self._running = False
+        logger.info("Application initialized successfully")
+
+    def _setup_logging(self) -> None:
+        """Setup logging using configuration."""
+        logging_config = self.config.get("logging", {})
+
+        # Extract logging parameters from config
+        file_config = logging_config.get("file", {})
+        console_config = logging_config.get("console", {})
+
+        # Convert string log level to logging constant
+        level_str = logging_config.get("level", "INFO")
+        level = getattr(logging, level_str.upper(), logging.INFO)
+
+        # Setup logging with configured parameters
+        setup_logging(
+            log_dir=Path(file_config.get("directory", "logs")),
+            log_file=file_config.get("filename", "app.log"),
+            level=level,
+            console_output=console_config.get("enabled", True),
+            file_output=file_config.get("enabled", True),
+            max_bytes=file_config.get("max_bytes", 10 * 1024 * 1024),
+            backup_count=file_config.get("backup_count", 5),
+        )
+
+    def _initialize_components(self) -> None:
+        """Initialize core components with configuration."""
+        # Event bus (no config needed yet)
+        self.event_bus = EventBus()
+
+        # Resource manager with config
+        resource_config = self.config.get("resources", {})
+        self.resource_manager = ResourceManager(
+            process_memory_mb=resource_config.get("process_memory_mb", 512),
+            reserved_ram_percent=resource_config.get("reserved_ram_percent", 0.25),
+            threads_per_core=resource_config.get("threads_per_core", 2),
+        )
+
+        # Module loader with config
+        modules_config = self.config.get("modules", {})
+        self.module_loader = ModuleLoader(
+            watch_reload=modules_config.get("hot_reload", True)
+        )
 
     def start(self) -> None:
         """Start the application."""
@@ -110,12 +178,6 @@ class Application:
 
 def main() -> None:
     """Main entry point."""
-    # Setup basic logging (will be enhanced by logging module later)
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
-
     app = Application()
     app.start()
 

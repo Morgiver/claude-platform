@@ -4,6 +4,7 @@
 **Scope**: Small
 **Complexity**: Low
 **Priority**: P3 (Enhancement - improves development experience)
+**GitHub Issue**: https://github.com/Morgiver/claude-platform/issues/5
 
 ---
 

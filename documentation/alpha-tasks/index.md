@@ -36,24 +36,24 @@ This document tracks ALPHA feature development for the main/ orchestrator. Featu
 
 ### Core Infrastructure
 
-- **Feature-001**: Configuration System
-- **Feature-002**: Centralized Logging Setup
-- **Feature-003**: Error Handling Integration
+- **Feature-001**: Configuration System - [#1](https://github.com/Morgiver/claude-platform/issues/1)
+- **Feature-002**: Centralized Logging Setup - [#2](https://github.com/Morgiver/claude-platform/issues/2)
+- **Feature-003**: Error Handling Integration - [#3](https://github.com/Morgiver/claude-platform/issues/3)
 
 ### Module System
 
-- **Feature-004**: Module Loading & Lifecycle Management
-- **Feature-005**: Module Hot-Reload System
+- **Feature-004**: Module Loading & Lifecycle Management - [#4](https://github.com/Morgiver/claude-platform/issues/4)
+- **Feature-005**: Module Hot-Reload System - [#5](https://github.com/Morgiver/claude-platform/issues/5)
 
 ### Application Orchestration
 
-- **Feature-006**: Application Startup & Integration
-- **Feature-007**: Test Mode Implementation
+- **Feature-006**: Application Startup & Integration - [#6](https://github.com/Morgiver/claude-platform/issues/6)
+- **Feature-007**: Test Mode Implementation - [#7](https://github.com/Morgiver/claude-platform/issues/7)
 
 ### Validation & Demo
 
-- **Feature-008**: Dummy Modules for Validation
-- **Feature-009**: Demo Scenario Execution
+- **Feature-008**: Dummy Modules for Validation - [#8](https://github.com/Morgiver/claude-platform/issues/8)
+- **Feature-009**: Demo Scenario Execution - [#9](https://github.com/Morgiver/claude-platform/issues/9)
 
 ---
 

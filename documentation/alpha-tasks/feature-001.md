@@ -4,6 +4,7 @@
 **Scope**: Medium
 **Complexity**: Low
 **Priority**: P1 (Critical path - foundation for all features)
+**GitHub Issue**: https://github.com/Morgiver/claude-platform/issues/1
 
 ---
 

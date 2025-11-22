@@ -4,6 +4,7 @@
 **Scope**: Small
 **Complexity**: Low
 **Priority**: P1 (Critical path - needed for robust module loading)
+**GitHub Issue**: https://github.com/Morgiver/claude-platform/issues/3
 
 ---
 

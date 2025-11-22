@@ -4,6 +4,7 @@
 **Scope**: Medium
 **Complexity**: Medium
 **Priority**: P2 (Core functionality after foundation)
+**GitHub Issue**: https://github.com/Morgiver/claude-platform/issues/4
 
 ---
 

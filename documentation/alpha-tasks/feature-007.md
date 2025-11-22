@@ -4,6 +4,7 @@
 **Scope**: Large
 **Complexity**: Medium
 **Priority**: P3 (Quality enhancement - not critical path)
+**GitHub Issue**: https://github.com/Morgiver/claude-platform/issues/7
 
 ---
 

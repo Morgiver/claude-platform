@@ -4,6 +4,7 @@
 **Scope**: Small
 **Complexity**: Low
 **Priority**: P4 (Final validation - proves everything works)
+**GitHub Issue**: https://github.com/Morgiver/claude-platform/issues/9
 
 ---
 

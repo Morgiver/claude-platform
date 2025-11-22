@@ -41,23 +41,35 @@ class ResourceManager:
     - Process memory footprint estimation
     """
 
-    # Estimated memory per process (MB) - can be configured
-    PROCESS_MEMORY_MB = 512
-    # Reserve percentage of RAM for system
-    RESERVED_RAM_PERCENT = 0.25
-    # Thread multiplier per CPU core
-    THREAD_PER_CORE = 2
+    # Default constants
+    DEFAULT_PROCESS_MEMORY_MB = 512
+    DEFAULT_RESERVED_RAM_PERCENT = 0.25
+    DEFAULT_THREAD_PER_CORE = 2
 
-    def __init__(self, process_memory_mb: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        process_memory_mb: int = DEFAULT_PROCESS_MEMORY_MB,
+        reserved_ram_percent: float = DEFAULT_RESERVED_RAM_PERCENT,
+        threads_per_core: int = DEFAULT_THREAD_PER_CORE,
+    ) -> None:
         """
         Initialize resource manager.
 
         Args:
-            process_memory_mb: Estimated memory per process in MB.
-                             If None, uses default (512MB).
+            process_memory_mb: Estimated memory per process in MB. Defaults to 512MB.
+            reserved_ram_percent: Percentage of RAM to reserve for system. Defaults to 0.25 (25%).
+            threads_per_core: Thread multiplier per CPU core. Defaults to 2.
         """
-        self.process_memory_mb = process_memory_mb or self.PROCESS_MEMORY_MB
-        logger.info(f"ResourceManager initialized (process_memory: {self.process_memory_mb}MB)")
+        self.process_memory_mb = process_memory_mb
+        self.reserved_ram_percent = reserved_ram_percent
+        self.threads_per_core = threads_per_core
+
+        logger.info(
+            f"ResourceManager initialized: "
+            f"process_memory={self.process_memory_mb}MB, "
+            f"reserved_ram={self.reserved_ram_percent*100:.0f}%, "
+            f"threads_per_core={self.threads_per_core}"
+        )
 
     def get_system_resources(self) -> SystemResources:
         """
@@ -76,7 +88,7 @@ class ResourceManager:
         cpu_count_physical = psutil.cpu_count(logical=False) or cpu_count
 
         # Calculate max processes based on available RAM
-        reserved_ram_gb = total_ram_gb * self.RESERVED_RAM_PERCENT
+        reserved_ram_gb = total_ram_gb * self.reserved_ram_percent
         usable_ram_gb = available_ram_gb - reserved_ram_gb
         usable_ram_mb = max(0, usable_ram_gb * 1024)
         max_processes = max(1, int(usable_ram_mb / self.process_memory_mb))
@@ -85,7 +97,7 @@ class ResourceManager:
         max_processes = min(max_processes, cpu_count)
 
         # Calculate max threads
-        max_threads = cpu_count * self.THREAD_PER_CORE
+        max_threads = cpu_count * self.threads_per_core
 
         resources = SystemResources(
             total_ram_gb=total_ram_gb,
@@ -136,7 +148,7 @@ class ResourceManager:
         resources = self.get_system_resources()
         available_mb = resources.available_ram_gb * 1024
 
-        reserved_mb = resources.total_ram_gb * 1024 * self.RESERVED_RAM_PERCENT
+        reserved_mb = resources.total_ram_gb * 1024 * self.reserved_ram_percent
         usable_mb = available_mb - reserved_mb
 
         sufficient = usable_mb >= required_mb
