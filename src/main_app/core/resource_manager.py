@@ -5,6 +5,8 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
+from ..utils.platform_utils import get_platform_resource_limits, get_platform_info
+
 
 logger = logging.getLogger(__name__)
 
@@ -87,17 +89,27 @@ class ResourceManager:
         cpu_count = psutil.cpu_count(logical=True)
         cpu_count_physical = psutil.cpu_count(logical=False) or cpu_count
 
+        # Get platform-optimized limits
+        platform_limits = get_platform_resource_limits()
+        platform_info = get_platform_info()
+
         # Calculate max processes based on available RAM
         reserved_ram_gb = total_ram_gb * self.reserved_ram_percent
         usable_ram_gb = available_ram_gb - reserved_ram_gb
         usable_ram_mb = max(0, usable_ram_gb * 1024)
-        max_processes = max(1, int(usable_ram_mb / self.process_memory_mb))
+        max_processes_ram = max(1, int(usable_ram_mb / self.process_memory_mb))
 
-        # Limit by CPU cores as well
-        max_processes = min(max_processes, cpu_count)
+        # Limit by CPU cores and platform-specific maximums
+        max_processes = min(max_processes_ram, cpu_count, platform_limits['max_processes'])
 
-        # Calculate max threads
-        max_threads = cpu_count * self.threads_per_core
+        # Calculate max threads with platform-specific maximum
+        max_threads_calc = cpu_count * self.threads_per_core
+        max_threads = min(max_threads_calc, platform_limits['max_threads'])
+
+        logger.info(
+            f"Resource limits: {max_processes} processes, {max_threads} threads "
+            f"(platform: {platform_info.system}, {platform_limits['reason']})"
+        )
 
         resources = SystemResources(
             total_ram_gb=total_ram_gb,

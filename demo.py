@@ -20,6 +20,10 @@ import os
 from pathlib import Path
 from datetime import datetime
 
+# Add src to path to import platform_utils
+sys.path.insert(0, str(Path(__file__).parent / 'src'))
+from main_app.utils.platform_utils import is_clean_exit_code, get_platform_info
+
 
 class DemoValidator:
     """Automated ALPHA demo and validation."""
@@ -254,10 +258,15 @@ class DemoValidator:
             # Check for shutdown messages
             has_shutdown_logs = "Shutting down" in log_content or "shutdown" in log_content.lower()
 
-            # Accept clean exit codes: 0 = clean exit, -15 = SIGTERM (graceful termination)
-            if exit_code in [0, -15]:
-                self.print_success(f"Graceful shutdown successful (exit code: {exit_code})")
-                self.results.append(("Graceful Shutdown", True, f"Process terminated cleanly (exit code {exit_code})"))
+            # Platform-aware exit code validation
+            platform_info = get_platform_info()
+
+            if is_clean_exit_code(exit_code):
+                self.print_success(
+                    f"Graceful shutdown successful "
+                    f"(exit code: {exit_code}, platform: {platform_info.system})"
+                )
+                self.results.append(("Graceful Shutdown", True, f"Process terminated cleanly (exit code {exit_code}, platform: {platform_info.system})"))
                 return True
             else:
                 self.print_failure(f"Unexpected exit code: {exit_code}")

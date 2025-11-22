@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from ..config import load_all_configs
 from ..logging import setup_logging
 from ..error_handling.webhook_notifier import WebhookNotifier
+from ..utils.platform_utils import get_platform_info, get_available_signals
 from .event_bus import EventBus
 from .module_loader import ModuleLoader
 from .resource_manager import ResourceManager
@@ -215,9 +216,33 @@ class Application:
         """Start the application."""
         logger.info("Starting application...")
 
-        # Register signal handlers for graceful shutdown
+        # Log platform information
+        platform_info = get_platform_info()
+        logger.info(f"Platform: {platform_info.display_name}")
+        logger.info(f"Architecture: {platform_info.machine}")
+        logger.info(f"Python: {platform_info.python_version}")
+
+        # Log available signals
+        available_signals = get_available_signals()
+        logger.debug(f"Available signals: {', '.join(available_signals.keys())}")
+
+        # Register signal handlers for graceful shutdown (platform-aware)
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
+        logger.info("Registered SIGINT and SIGTERM handlers")
+
+        # Platform-specific signal handlers
+        if platform_info.is_windows:
+            if 'SIGBREAK' in available_signals:
+                signal.signal(available_signals['SIGBREAK'], self._signal_handler)
+                logger.debug("Registered Windows SIGBREAK handler")
+        else:  # Unix (Linux, macOS)
+            if 'SIGHUP' in available_signals:
+                signal.signal(available_signals['SIGHUP'], self._signal_handler)
+                logger.debug("Registered Unix SIGHUP handler")
+            if 'SIGQUIT' in available_signals:
+                signal.signal(available_signals['SIGQUIT'], self._signal_handler)
+                logger.debug("Registered Unix SIGQUIT handler")
 
         # Enable webhook notifications if configured
         if self.webhook_notifier.webhook_url:

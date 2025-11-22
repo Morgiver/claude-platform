@@ -37,8 +37,15 @@ def main() -> None:
 
     # Handle --version flag
     if args.version:
-        print("Main Application v0.5.0-alpha.1")
+        from .utils.platform_utils import get_platform_info
+
+        platform_info = get_platform_info()
+
+        print("Main Application v0.11.0-alpha.1")
         print("ALPHA Development Version")
+        print(f"Platform: {platform_info.display_name}")
+        print(f"Architecture: {platform_info.machine}")
+        print(f"Python: {platform_info.python_version}")
         sys.exit(0)
 
     # Handle --test flag
