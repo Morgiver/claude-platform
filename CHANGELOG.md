@@ -1,57 +1,61 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-**Full changelog**: See [changelog/index.md](changelog/index.md) for complete version history.
+📋 **For complete version history**: see [changelog/index.md](changelog/index.md)
 
 ---
 
-## [0.4.0-alpha.1] - 2025-11-22
+## [0.5.0-alpha.1] - 2025-11-22
 
 ### Added
-- **Error Handling Integration (Feature-003)**
-  - WebhookNotifier integration with Application configuration system
-  - Configuration-driven error strategies (retry, circuit breaker)
-  - Enhanced docstrings with comprehensive usage examples
-  - Complete error handling demonstration script (`examples/error_handling_demo.py`)
-  - Webhook URL loading from config with environment variable substitution
-  - Graceful fallback when webhook URL not configured
+- **Module Loading & Lifecycle Management (Feature-004)**
+  - Declarative module loading from `config/modules.yaml`
+  - Module interface contract: `initialize(event_bus, config)` and `shutdown()` hooks
+  - EventBus injection into all loaded modules for pub/sub communication
+  - Module-specific config injection from YAML configuration
+  - Lifecycle event publishing (`module.loaded`, `module.error`)
+  - Error isolation - module failures don't crash application
+  - Hot-reload file observer for module directories
+  - Disabled module skipping with log messages
+  - Test module validation in `modules-backend/test-module/`
 
 ### Changed
-- `Application.__init__()`: Added WebhookNotifier initialization from config
-- `Application.start()`: Enable webhook notifications if URL configured
-- Enhanced `strategies.py` documentation with config examples and use cases
-- Config schema: Added `webhooks.critical_errors_url` section
+- Enhanced `src/main_app/core/application.py` with `_load_modules()` method (273 lines, +73)
+- Enhanced `src/main_app/core/module_loader.py` with shutdown lifecycle hooks (282 lines, +13)
+
+### Fixed
+- Config merge error in `config_loader.py` when loading `modules.yaml` (dict.update with list)
+- Module path resolution (using absolute paths in config for now, relative paths deferred to BETA)
 
 ### Files Modified
-- `src/main_app/core/application.py` (199 lines, +29)
-- `src/main_app/error_handling/strategies.py` (243 lines, +75 documentation)
-- `config/main.yaml` (added webhooks section)
+- `src/main_app/core/application.py` (273 lines, +73)
+- `src/main_app/core/module_loader.py` (282 lines, +13)
+- `src/main_app/config/config_loader.py` (+3 lines)
 
 ### Files Created
-- `examples/error_handling_demo.py` (239 lines) - Comprehensive demo script
-- `examples/__init__.py` - Examples package initialization
+- `modules-backend/test-module/__init__.py` (35 lines) - Test module demonstrating interface
+- `config/modules.yaml` - Module loading configuration
 
 ### Testing
-- Manual validation: Webhook configuration loading, retry decorator, circuit breaker
-- Demo script: 4 working demonstrations with clear output
-- Validation: All tests PASS
-  - Webhook disabled by default: PASS
-  - Webhook enabled with URL: PASS
-  - Retry decorator: 2 attempts before success
-  - Circuit breaker: Opens after 5 failures
-  - Combined strategy: Retry handles transient failures
+- Manual validation: All 7 test scenarios PASS
+  - ✅ Module loading from configuration
+  - ✅ Initialize hook with EventBus injection
+  - ✅ Config passed to module
+  - ✅ EventBus communication (subscribe/publish)
+  - ✅ Lifecycle events published
+  - ✅ Hot-reload observer started
+  - ✅ Error isolation verified
+
+### Dependencies
+- **Requires**: Feature-001 (Config System), Feature-002 (Logging), Feature-003 (Error Handling)
+- **Unblocks**: Feature-005 (Hot-Reload), Feature-006 (Application Integration), Feature-008/009 (Dummy Modules & Demo)
 
 ### Notes
 - **Workflow**: ALPHA
-- **Mission**: mission-003 (Error Handling Integration)
-- **GitHub Issue**: Closes #3
-- **Commit**: 9274ced
-- **Full details**: [changelog/alpha/v0.4.0-alpha.1.md](changelog/alpha/v0.4.0-alpha.1.md)
+- **Mission**: mission-004
+- **GitHub Issue**: #4
+- **Commit**: badaa8d
+- **Full details**: [changelog/alpha/v0.5.0-alpha.1.md](changelog/alpha/v0.5.0-alpha.1.md)
 
 ---
 
-_This file shows only the current version. Full history: [changelog/index.md](changelog/index.md)_
+*This file shows only the current version. Full history: [changelog/](changelog/)*

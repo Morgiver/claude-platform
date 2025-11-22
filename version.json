@@ -1,15 +1,26 @@
 {
-  "version": "0.4.0-alpha.1",
+  "version": "0.5.0-alpha.1",
   "workflow_version": "ALPHA",
   "project_name": "main",
   "created_at": "2025-11-22T00:00:00Z",
-  "last_updated": "2025-11-22T18:00:00Z",
-  "last_commit": "9274ced82b3ace155ea769b22314d1b3385dbbfb",
-  "last_tag": "v0.4.0-alpha.1",
+  "last_updated": "2025-11-22T19:00:00Z",
+  "last_commit": "badaa8d82b3ace155ea769b22314d1b3385dbbfb",
+  "last_tag": "v0.5.0-alpha.1",
   "last_pr": null,
   "last_release": null,
   "changelog_url": "CHANGELOG.md",
   "history": [
+    {
+      "version": "0.5.0-alpha.1",
+      "date": "2025-11-22T19:00:00Z",
+      "workflow": "ALPHA",
+      "type": "minor",
+      "commit": "badaa8d82b3ace155ea769b22314d1b3385dbbfb",
+      "pr": null,
+      "task": "Feature-004",
+      "mission": "mission-004",
+      "description": "Module Loading & Lifecycle Management - Declarative module loading with EventBus injection"
+    },
     {
       "version": "0.4.0-alpha.1",
       "date": "2025-11-22T18:00:00Z",
