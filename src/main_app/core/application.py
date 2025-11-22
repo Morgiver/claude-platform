@@ -4,7 +4,7 @@ import logging
 import signal
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 
@@ -111,6 +111,73 @@ class Application:
             self.webhook_notifier = WebhookNotifier(enabled=False)
             logger.info("Webhook notifier disabled (no URL configured or disabled in config)")
 
+    def _load_modules(self, modules_config: List[Dict[str, Any]]) -> None:
+        """
+        Load modules from configuration.
+
+        Args:
+            modules_config: List of module configurations from modules.yaml
+        """
+        from .module_loader import ModuleConfig
+
+        logger.info(f"Loading {len(modules_config)} modules...")
+
+        for module_data in modules_config:
+            config = ModuleConfig(
+                name=module_data["name"],
+                path=module_data["path"],
+                enabled=module_data.get("enabled", True),
+                config=module_data.get("config", {})
+            )
+
+            # Skip disabled modules
+            if not config.enabled:
+                logger.info(f"Module '{config.name}' is disabled, skipping")
+                continue
+
+            # Load module
+            try:
+                success = self.module_loader.load_module(config)
+
+                if success:
+                    # Call initialize hook
+                    module = self.module_loader.get_module(config.name)
+                    if hasattr(module, "initialize"):
+                        try:
+                            module.initialize(self.event_bus, config.config)
+                            logger.info(f"Module '{config.name}' initialized successfully")
+
+                            # Publish success event
+                            self.event_bus.publish("module.loaded", {
+                                "name": config.name,
+                                "path": config.path,
+                                "config": config.config
+                            })
+                        except Exception as e:
+                            logger.error(f"Failed to initialize module '{config.name}': {e}", exc_info=True)
+                            self.event_bus.publish("module.error", {
+                                "name": config.name,
+                                "error": str(e),
+                                "phase": "initialize"
+                            })
+                    else:
+                        logger.warning(f"Module '{config.name}' has no initialize() function")
+                else:
+                    # Load failed
+                    logger.error(f"Failed to load module '{config.name}'")
+                    self.event_bus.publish("module.error", {
+                        "name": config.name,
+                        "error": "Module load failed",
+                        "phase": "load"
+                    })
+            except Exception as e:
+                logger.error(f"Error loading module '{config.name}': {e}", exc_info=True)
+                self.event_bus.publish("module.error", {
+                    "name": config.name,
+                    "error": str(e),
+                    "phase": "load"
+                })
+
     def start(self) -> None:
         """Start the application."""
         logger.info("Starting application...")
@@ -134,6 +201,13 @@ class Application:
 
         # Publish startup event
         self.event_bus.publish("app.started", {"resources": resources})
+
+        # Load modules from configuration
+        modules_config = self.config.get("modules", {}).get("modules", [])
+        if modules_config:
+            self._load_modules(modules_config)
+        else:
+            logger.info("No modules configured, skipping module loading")
 
         self._running = True
         logger.info("Application started successfully")

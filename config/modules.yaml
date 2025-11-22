@@ -2,16 +2,13 @@
 # Declarative list of modules to load at startup
 
 modules:
-  # Example module configuration
-  # - name: "example_module"
-  #   path: "../modules-backend/example/src/example.py"
-  #   enabled: true
-  #   config:
-  #     setting1: "value1"
-  #     setting2: 42
-
-  # Add your modules here
-  []
+  # Test module for validation
+  - name: "test-module"
+    path: "e:/claude/modules-backend/test-module/__init__.py"
+    enabled: true
+    config:
+      test_setting: "test_value"
+      test_number: 42
 
 # Module search paths (additional directories to search for modules)
 search_paths:

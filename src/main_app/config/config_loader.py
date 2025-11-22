@@ -149,8 +149,10 @@ def load_all_configs(config_dir: Path = Path("config")) -> Dict[str, Any]:
             # Merge modules config
             if 'modules' not in config:
                 config['modules'] = {}
-            if 'modules' in modules_config:
-                config['modules'].update(modules_config['modules'])
+            # modules.yaml contains { "modules": [...], "search_paths": [...] }
+            # Merge each key separately
+            for key, value in modules_config.items():
+                config['modules'][key] = value
             logger.debug("Loaded modules configuration")
         except Exception as e:
             logger.warning(f"Failed to load modules config, using defaults: {e}")

@@ -255,15 +255,28 @@ class ModuleLoader:
         logger.debug(f"Watching path for changes: {path}")
 
     def shutdown(self) -> None:
-        """Shutdown module loader and stop file watching."""
-        # Stop observer
-        if self._observer:
+        """Shutdown module loader and all loaded modules."""
+        logger.info(f"Shutting down {len(self._modules)} modules...")
+
+        # Call shutdown hook on each module
+        for name, module in list(self._modules.items()):
+            if hasattr(module, "shutdown"):
+                try:
+                    logger.info(f"Shutting down module '{name}'...")
+                    module.shutdown()
+                    logger.info(f"Module '{name}' shutdown successfully")
+                except Exception as e:
+                    logger.error(f"Error shutting down module '{name}': {e}", exc_info=True)
+            else:
+                logger.debug(f"Module '{name}' has no shutdown() hook")
+
+        # Stop file observer
+        if self._observer and self._observer.is_alive():
             self._observer.stop()
-            self._observer.join()
+            self._observer.join(timeout=2)
             logger.info("File observer stopped")
 
-        # Unload all modules
-        for module_name in list(self._modules.keys()):
-            self.unload_module(module_name)
-
+        # Clear module registry
+        self._modules.clear()
+        self._module_configs.clear()
         logger.info("ModuleLoader shutdown complete")
