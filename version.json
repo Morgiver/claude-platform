@@ -1,15 +1,26 @@
 {
-  "version": "0.1.0-alpha.1",
+  "version": "0.2.0-alpha.1",
   "workflow_version": "ALPHA",
   "project_name": "main",
   "created_at": "2025-11-22T00:00:00Z",
-  "last_updated": "2025-11-22T00:00:00Z",
-  "last_commit": null,
-  "last_tag": null,
+  "last_updated": "2025-11-22T14:30:00Z",
+  "last_commit": "f0730ff9b8fa3b93fff7ae474fd45cf7496f5ef8",
+  "last_tag": "v0.2.0-alpha.1",
   "last_pr": null,
   "last_release": null,
   "changelog_url": "CHANGELOG.md",
   "history": [
+    {
+      "version": "0.2.0-alpha.1",
+      "date": "2025-11-22T14:30:00Z",
+      "workflow": "ALPHA",
+      "type": "minor",
+      "commit": "f0730ff9b8fa3b93fff7ae474fd45cf7496f5ef8",
+      "pr": null,
+      "task": "Feature-001",
+      "mission": "mission-001",
+      "description": "Configuration System - YAML loading with env var substitution"
+    },
     {
       "version": "0.1.0-alpha.1",
       "date": "2025-11-22T00:00:00Z",

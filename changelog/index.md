@@ -6,7 +6,7 @@ This file contains the complete version history across all workflow phases.
 
 ## Current Phase: ALPHA
 
-**Current Version**: 0.1.0-alpha.1
+**Current Version**: 0.2.0-alpha.1
 **Current Workflow**: ALPHA
 **Last Updated**: 2025-11-22
 
@@ -28,10 +28,11 @@ _No BETA versions yet._
 
 | Version | Date | Type | Feature | Details |
 |---------|------|------|---------|---------|
+| [0.2.0-alpha.1](alpha/v0.2.0-alpha.1.md) | 2025-11-22 | Feature (MINOR) | Configuration System | [Full changelog](alpha/v0.2.0-alpha.1.md) |
 | [0.1.0-alpha.1](alpha/v0.1.0-alpha.1.md) | 2025-11-22 | Initialization | Project Setup | [Full changelog](alpha/v0.1.0-alpha.1.md) |
 
-**Total ALPHA versions**: 1
+**Total ALPHA versions**: 2
 
 ---
 
-**Grand Total**: 1 version
+**Grand Total**: 2 versions
