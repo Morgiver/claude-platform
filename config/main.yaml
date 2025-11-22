@@ -1,0 +1,45 @@
+# Main application configuration
+
+app:
+  name: "Multi-Agent Orchestrator"
+  version: "0.1.0"
+  environment: "development"  # development, staging, production
+
+# Resource management
+resources:
+  # Process memory estimation (MB)
+  process_memory_mb: 512
+  # Reserved RAM percentage for system
+  reserved_ram_percent: 0.25
+  # Threads per CPU core
+  threads_per_core: 2
+
+# Module loader
+modules:
+  # Enable hot-reload on file changes
+  hot_reload: true
+  # Modules configuration file
+  config_file: "config/modules.yaml"
+
+# Error handling
+error_handling:
+  # Retry strategy
+  retry:
+    max_attempts: 3
+    wait_min_seconds: 1.0
+    wait_max_seconds: 10.0
+
+  # Circuit breaker
+  circuit_breaker:
+    fail_max: 5
+    reset_timeout_seconds: 60
+
+  # Webhook notifications
+  webhook:
+    enabled: false
+    # Set WEBHOOK_URL environment variable
+    timeout_seconds: 10.0
+
+# Logging - detailed config in logging.yaml
+logging:
+  config_file: "config/logging.yaml"

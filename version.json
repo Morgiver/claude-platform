@@ -1,0 +1,25 @@
+{
+  "version": "0.1.0-alpha.1",
+  "workflow_version": "ALPHA",
+  "project_name": "main",
+  "created_at": "2025-11-22T00:00:00Z",
+  "last_updated": "2025-11-22T00:00:00Z",
+  "last_commit": null,
+  "last_tag": null,
+  "last_pr": null,
+  "last_release": null,
+  "changelog_url": "CHANGELOG.md",
+  "history": [
+    {
+      "version": "0.1.0-alpha.1",
+      "date": "2025-11-22T00:00:00Z",
+      "workflow": "ALPHA",
+      "type": "initialization",
+      "commit": null,
+      "pr": null,
+      "task": null,
+      "mission": null,
+      "description": "Project initialization - versioning system setup"
+    }
+  ]
+}

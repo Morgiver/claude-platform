@@ -1,0 +1,25 @@
+# Core dependencies
+pyyaml>=6.0.1
+
+# Hot-reload
+watchdog>=3.0.0
+
+# System monitoring (RAM/CPU)
+psutil>=5.9.6
+
+# Retry strategies
+tenacity>=8.2.3
+
+# Circuit breaker
+pybreaker>=1.0.1
+
+# Async HTTP for webhooks
+httpx>=0.25.2
+
+# Development dependencies
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+pytest-cov>=4.1.0
+ruff>=0.1.8
+mypy>=1.7.1
+types-PyYAML>=6.0.12.12
