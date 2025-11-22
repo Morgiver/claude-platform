@@ -108,9 +108,14 @@ def main() -> None:
     try:
         app = Application(config_dir=config_dir)
         app.start()
+        # Application exited cleanly
+        sys.exit(0)
     except KeyboardInterrupt:
         print("\nApplication interrupted by user")
         sys.exit(0)
+    except SystemExit:
+        # Re-raise SystemExit to preserve exit code
+        raise
     except Exception as e:
         print(f"Fatal error: {e}", file=sys.stderr)
         sys.exit(1)

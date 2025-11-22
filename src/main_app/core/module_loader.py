@@ -4,6 +4,7 @@ import importlib
 import importlib.util
 import logging
 import sys
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
@@ -104,36 +105,56 @@ class ModuleLoader:
             logger.info(f"Module '{config.name}' is disabled, skipping")
             return False
 
+        # Start timing
+        start_time = time.time()
+        logger.info(f"[TIMING] Starting load for module '{config.name}'")
+
         try:
             module_path = Path(config.path)
 
+            # Timing: Path validation
+            path_check_start = time.time()
             if not module_path.exists():
                 logger.error(f"Module path does not exist: {config.path}")
                 return False
+            logger.debug(f"[TIMING] Path validation for '{config.name}': {time.time() - path_check_start:.3f}s")
 
-            # Load module
+            # Timing: Module spec creation
+            spec_start = time.time()
             spec = importlib.util.spec_from_file_location(config.name, module_path)
             if spec is None or spec.loader is None:
                 logger.error(f"Failed to create module spec for '{config.name}'")
                 return False
+            logger.debug(f"[TIMING] Spec creation for '{config.name}': {time.time() - spec_start:.3f}s")
 
+            # Timing: Module import and execution
+            import_start = time.time()
             module = importlib.util.module_from_spec(spec)
             sys.modules[config.name] = module
             spec.loader.exec_module(module)
+            import_elapsed = time.time() - import_start
+            logger.info(f"[TIMING] Module import/exec for '{config.name}': {import_elapsed:.3f}s")
 
             # Store module and config
             self._modules[config.name] = module
             self._module_configs[config.name] = config
 
-            # Setup hot-reload watching
+            # Timing: Setup hot-reload watching (non-blocking)
             if self._watch_reload:
+                watch_start = time.time()
                 self._watch_path(str(module_path.parent))
+                watch_elapsed = time.time() - watch_start
+                logger.debug(f"[TIMING] Watchdog setup for '{config.name}': {watch_elapsed:.3f}s")
 
+            # Total timing
+            total_elapsed = time.time() - start_time
+            logger.info(f"[TIMING] Module '{config.name}' loaded in {total_elapsed:.3f}s")
             logger.info(f"Module '{config.name}' loaded successfully from {config.path}")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to load module '{config.name}': {e}", exc_info=True)
+            elapsed = time.time() - start_time
+            logger.error(f"[TIMING] Failed to load module '{config.name}' after {elapsed:.3f}s: {e}", exc_info=True)
             return False
 
     def load_modules(self, configs: List[ModuleConfig]) -> Dict[str, bool]:
@@ -331,23 +352,38 @@ class ModuleLoader:
 
     def _watch_path(self, path: str) -> None:
         """
-        Start watching a path for changes.
+        Start watching a path for changes (non-blocking).
 
         Args:
             path: Directory path to watch
         """
         if path in self._watched_paths:
+            logger.debug(f"Path already watched: {path}")
             return
 
-        if self._observer is None:
-            self._observer = Observer()
-            self._observer.start()
-            logger.info("File observer started for hot-reload")
+        try:
+            # Initialize observer if needed (lazy initialization)
+            if self._observer is None:
+                observer_start = time.time()
+                self._observer = Observer()
+                # Start observer in daemon mode (non-blocking)
+                self._observer.daemon = True
+                self._observer.start()
+                observer_elapsed = time.time() - observer_start
+                logger.info(f"[TIMING] File observer started in {observer_elapsed:.3f}s (daemon mode)")
 
-        handler = ModuleReloadHandler(self)
-        self._observer.schedule(handler, path, recursive=True)
-        self._watched_paths.add(path)
-        logger.debug(f"Watching path for changes: {path}")
+            # Schedule path watching
+            schedule_start = time.time()
+            handler = ModuleReloadHandler(self)
+            self._observer.schedule(handler, path, recursive=True)
+            self._watched_paths.add(path)
+            schedule_elapsed = time.time() - schedule_start
+            logger.debug(f"[TIMING] Path scheduled for watching in {schedule_elapsed:.3f}s: {path}")
+
+        except Exception as e:
+            logger.warning(f"Failed to setup file watching for {path}: {e}")
+            # Don't fail module loading if watching fails
+            pass
 
     def shutdown(self) -> None:
         """Shutdown module loader and all loaded modules."""

@@ -323,8 +323,8 @@ class Application:
             frame: Current stack frame
         """
         logger.info(f"Received signal {signum}")
-        self.shutdown()
-        sys.exit(0)
+        # Stop the application loop (shutdown will be called in finally block)
+        self._running = False
 
 
 def main() -> None:
