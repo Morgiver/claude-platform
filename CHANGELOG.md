@@ -9,44 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.2.0-alpha.1] - 2025-11-22
+## [0.3.0-alpha.1] - 2025-11-22
 
 ### Added
-- **Configuration System (Feature-001)**
-  - YAML configuration loading with environment variable substitution
-  - ConfigLoader utility for loading main.yaml, logging.yaml, modules.yaml
-  - Environment variable substitution support (${VAR_NAME} syntax)
-  - Graceful error handling for missing/invalid configuration files
-  - Integration with Application startup
-  - Configuration passed to all core components
+- **Centralized Logging Setup (Feature-002)**
+  - Enhanced logging utilities to use YAML configuration from config/main.yaml
+  - Implemented rotating file handlers with configurable size limits and backup counts
+  - Automatic logs directory creation if missing
+  - Dual logging: console output AND rotating file output (logs/app.log)
+  - Configurable log levels from YAML (DEBUG in ALPHA mode)
+  - Log format with timestamps, module names, levels, and messages
 
 ### Changed
-- Application class now loads configuration at startup
-- ResourceManager accepts configuration parameters (process_memory_mb, reserved_ram_percent, threads_per_core)
-- Logging setup now uses YAML configuration from logging.yaml
-- Added python-dotenv dependency for .env file support
-
-### Files Created
-- `src/main_app/config/__init__.py` - Config package exports
-- `src/main_app/config/config_loader.py` - YAML loader with env var substitution (162 lines)
+- `setup_logging()` function now accepts full config dict instead of hardcoded parameters
+- Application logging configuration simplified to pass full config to setup_logging()
+- Logging setup now reads from config["logging"] section in main.yaml
 
 ### Files Modified
-- `src/main_app/core/application.py` - Config loading integration
-- `src/main_app/core/resource_manager.py` - Configuration parameters support
-- `requirements.txt` - Added python-dotenv
+- `src/main_app/logging/logger.py` - Enhanced setup_logging() to accept config dict
+- `src/main_app/core/application.py` - Simplified logging setup call
 
 ### Testing
-- Manual validation: Application starts successfully
-- Configuration loaded from correct paths
-- Environment variable substitution verified
-- ResourceManager configured correctly from YAML
+- Manual validation: Application starts with logging configured correctly
+- Logs written to both console and logs/app.log
+- Log rotation verified (file size, backup count)
+- Logs directory auto-creation confirmed
+- Log format verified (timestamp, module, level, message)
 
 ### Notes
 - **Workflow**: ALPHA
-- **Mission**: mission-001 (Configuration System Integration)
-- **GitHub Issue**: Closes #1
-- **Commit**: f0730ff
-- **Full details**: [changelog/alpha/v0.2.0-alpha.1.md](changelog/alpha/v0.2.0-alpha.1.md)
+- **Mission**: mission-002 (Centralized Logging Setup)
+- **GitHub Issue**: Closes #2
+- **Commit**: 797d1ec
+- **Full details**: [changelog/alpha/v0.3.0-alpha.1.md](changelog/alpha/v0.3.0-alpha.1.md)
 
 ---
 
