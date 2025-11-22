@@ -86,11 +86,16 @@ class Application:
             threads_per_core=resource_config.get("threads_per_core", 2),
         )
 
-        # Module loader with config
+        # Module loader with config and hot-reload callback
         modules_config = self.config.get("modules", {})
+        hot_reload_enabled = modules_config.get("hot_reload", True)
+
         self.module_loader = ModuleLoader(
-            watch_reload=modules_config.get("hot_reload", True)
+            watch_reload=hot_reload_enabled,
+            reload_callback=self._on_module_reload
         )
+
+        logger.info(f"Hot-reload: {'enabled' if hot_reload_enabled else 'disabled'}")
 
         # Webhook notifier with config
         webhook_config = self.config.get("error_handling", {}).get("webhook", {})
@@ -111,6 +116,24 @@ class Application:
             self.webhook_notifier = WebhookNotifier(enabled=False)
             logger.info("Webhook notifier disabled (no URL configured or disabled in config)")
 
+    def _on_module_reload(self, module_name: str, success: bool) -> None:
+        """
+        Callback for module reload events.
+
+        Args:
+            module_name: Name of the reloaded module
+            success: Whether reload was successful
+        """
+        if success:
+            logger.info(f"Module '{module_name}' reloaded successfully")
+            self.event_bus.publish("module.reloaded", {"name": module_name})
+        else:
+            logger.error(f"Module '{module_name}' reload failed, rollback occurred")
+            self.event_bus.publish("module.reload_failed", {
+                "name": module_name,
+                "error": "Reload failed, see logs for details"
+            })
+
     def _load_modules(self, modules_config: List[Dict[str, Any]]) -> None:
         """
         Load modules from configuration.
@@ -122,6 +145,9 @@ class Application:
 
         logger.info(f"Loading {len(modules_config)} modules...")
 
+        # Build module configs dict for hot-reload context
+        module_configs_dict = {}
+
         for module_data in modules_config:
             config = ModuleConfig(
                 name=module_data["name"],
@@ -129,6 +155,9 @@ class Application:
                 enabled=module_data.get("enabled", True),
                 config=module_data.get("config", {})
             )
+
+            # Store config for hot-reload context
+            module_configs_dict[config.name] = config.config
 
             # Skip disabled modules
             if not config.enabled:
@@ -177,6 +206,10 @@ class Application:
                     "error": str(e),
                     "phase": "load"
                 })
+
+        # Set reload context for hot-reload functionality
+        self.module_loader.set_reload_context(self.event_bus, module_configs_dict)
+        logger.info("Hot-reload context configured")
 
     def start(self) -> None:
         """Start the application."""

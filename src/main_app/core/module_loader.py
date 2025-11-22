@@ -72,18 +72,21 @@ class ModuleLoader:
     - Error isolation (failed modules don't crash loader)
     """
 
-    def __init__(self, watch_reload: bool = True) -> None:
+    def __init__(self, watch_reload: bool = True, reload_callback=None) -> None:
         """
         Initialize module loader.
 
         Args:
             watch_reload: Enable file watching for hot-reload
+            reload_callback: Optional callback function(module_name, success) called after reload
         """
         self._modules: Dict[str, Any] = {}
         self._module_configs: Dict[str, ModuleConfig] = {}
         self._watch_reload = watch_reload
         self._observer: Optional[Observer] = None
         self._watched_paths: set[str] = set()
+        self._reload_callback = reload_callback
+        self._reload_context: Dict[str, Any] = {}  # Store event_bus and configs for reload
 
         logger.info(f"ModuleLoader initialized (hot-reload={'enabled' if watch_reload else 'disabled'})")
 
@@ -181,23 +184,103 @@ class ModuleLoader:
             logger.error(f"Failed to unload module '{module_name}': {e}", exc_info=True)
             return False
 
-    def reload_module(self, module_name: str) -> bool:
+    def reload_module(self, module_name: str, event_bus=None, module_config=None) -> bool:
         """
-        Reload a module (unload then load).
+        Reload a module with full lifecycle hooks and rollback support.
 
         Args:
             module_name: Name of module to reload
+            event_bus: EventBus instance for initialize() hook
+            module_config: Config dict for initialize() hook
 
         Returns:
-            True if module reloaded successfully
+            True if reload successful, False if rollback occurred
         """
         if module_name not in self._module_configs:
             logger.warning(f"Module '{module_name}' not in configurations")
             return False
 
         config = self._module_configs[module_name]
-        self.unload_module(module_name)
-        return self.load_module(config)
+        old_module = self._modules.get(module_name)
+
+        try:
+            # Step 1: Call shutdown() hook on old module
+            if old_module and hasattr(old_module, "shutdown"):
+                try:
+                    logger.info(f"Calling shutdown() on module '{module_name}' before reload")
+                    old_module.shutdown()
+                except Exception as e:
+                    logger.warning(f"Error during shutdown of '{module_name}': {e}")
+
+            # Step 2: Unload old module from sys.modules
+            if module_name in sys.modules:
+                del sys.modules[module_name]
+
+            # Step 3: Load new module version
+            module_path = Path(config.path)
+            spec = importlib.util.spec_from_file_location(module_name, module_path)
+            if spec is None or spec.loader is None:
+                raise RuntimeError(f"Failed to create module spec for '{module_name}'")
+
+            new_module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = new_module
+            spec.loader.exec_module(new_module)
+
+            # Step 4: Call initialize() hook on new module
+            if hasattr(new_module, "initialize"):
+                try:
+                    logger.info(f"Calling initialize() on reloaded module '{module_name}'")
+                    new_module.initialize(event_bus, module_config or config.config or {})
+                except Exception as e:
+                    logger.error(f"Failed to initialize reloaded module '{module_name}': {e}")
+                    raise
+
+            # Step 5: Update module registry
+            self._modules[module_name] = new_module
+
+            logger.info(f"Module '{module_name}' reloaded successfully")
+            return True
+
+        except Exception as e:
+            # Step 6: Rollback - restore old module
+            logger.error(f"Failed to reload module '{module_name}': {e}", exc_info=True)
+            logger.info(f"Rolling back to previous version of '{module_name}'")
+
+            try:
+                # Restore old module in sys.modules and registry
+                if old_module:
+                    sys.modules[module_name] = old_module
+                    self._modules[module_name] = old_module
+
+                    # Re-initialize old module
+                    if hasattr(old_module, "initialize"):
+                        try:
+                            old_module.initialize(event_bus, module_config or config.config or {})
+                            logger.info(f"Old module '{module_name}' re-initialized after rollback")
+                        except Exception as reinit_error:
+                            logger.error(f"Failed to re-initialize old module '{module_name}': {reinit_error}")
+
+                    logger.info(f"Successfully rolled back module '{module_name}' to previous version")
+                else:
+                    logger.warning(f"No previous version to rollback for '{module_name}'")
+
+            except Exception as rollback_error:
+                logger.error(f"Rollback failed for module '{module_name}': {rollback_error}", exc_info=True)
+
+            return False
+
+    def set_reload_context(self, event_bus, module_configs: Dict[str, Any]) -> None:
+        """
+        Set context for hot-reload operations.
+
+        Args:
+            event_bus: EventBus instance to pass to reloaded modules
+            module_configs: Dict mapping module names to their configs
+        """
+        self._reload_context = {
+            "event_bus": event_bus,
+            "module_configs": module_configs
+        }
 
     def reload_module_by_path(self, file_path: str) -> None:
         """
@@ -210,7 +293,19 @@ class ModuleLoader:
         for name, config in self._module_configs.items():
             if Path(config.path) == Path(file_path):
                 logger.info(f"Reloading module '{name}' due to file change")
-                self.reload_module(name)
+
+                # Get reload context
+                event_bus = self._reload_context.get("event_bus")
+                module_configs = self._reload_context.get("module_configs", {})
+                module_config = module_configs.get(name, config.config)
+
+                # Perform reload with lifecycle hooks
+                success = self.reload_module(name, event_bus, module_config)
+
+                # Call reload callback if set
+                if self._reload_callback:
+                    self._reload_callback(name, success)
+
                 break
 
     def get_module(self, module_name: str) -> Optional[Any]:
